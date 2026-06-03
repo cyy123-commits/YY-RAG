@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>逸云智库知识库</title>
+  <style>
+    :root {
+      --bg: #06080d;
+      --panel: rgba(10, 14, 23, 0.92);
+      --panel-solid: #0a0e17;
+      --text: #dce4f0;
+      --text-secondary: #a0b4cc;
+      --muted: #5a6e88;
+      --accent: #00d4ff;
+      --accent2: #7c3aed;
+      --accent3: #f01b7d;
+      --bubble-user: linear-gradient(135deg, #0066ff, #00b4d8);
+      --bubble-bot: rgba(14, 20, 36, 0.9);
+      --border: rgba(0, 180, 255, 0.15);
+      --border-glow: rgba(0, 200, 255, 0.35);
+      --glass: rgba(255, 255, 255, 0.03);
+      --shadow: 0 0 60px rgba(0, 180, 255, 0.08);
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== Animated Grid Background ===== */
+    body {
+      font-family: "Inter", "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Grid lines */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 200, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 200, 255, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridShift 20s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes gridShift {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(60px, 60px); }
+    }
+
+    /* Floating particles */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(2px 2px at 15% 20%, rgba(0, 212, 255, 0.5), transparent),
+        radial-gradient(2px 2px at 35% 65%, rgba(124, 58, 237, 0.4), transparent),
+        radial-gradient(1px 1px at 55% 30%, rgba(0, 212, 255, 0.6), transparent),
+        radial-gradient(2px 2px at 70% 75%, rgba(240, 27, 125, 0.3), transparent),
+        radial-gradient(1px 1px at 85% 45%, rgba(0, 212, 255, 0.5), transparent),
+        radial-gradient(2px 2px at 25% 85%, rgba(124, 58, 237, 0.35), transparent),
+        radial-gradient(1px 1px at 60% 10%, rgba(0, 180, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 90% 90%, rgba(0, 212, 255, 0.3), transparent);
+      animation: particleFloat 15s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes particleFloat {
+      0%, 100% { opacity: 0.7; transform: translateY(0); }
+      33% { opacity: 1; transform: translateY(-10px); }
+      66% { opacity: 0.5; transform: translateY(5px); }
+    }
+
+    /* Scan line overlay on the app */
+    .app {
+      position: relative;
+      width: 100%;
+      max-width: 980px;
+      height: min(820px, 92vh);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow:
+        var(--shadow),
+        0 0 120px rgba(0, 180, 255, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* Top accent line */
+    .app::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0, 212, 255, 0.5) 20%,
+        rgba(124, 58, 237, 0.6) 50%,
+        rgba(0, 212, 255, 0.5) 80%,
+        transparent 100%
+      );
+      z-index: 10;
+      animation: topLinePulse 3s ease-in-out infinite;
+    }
+
+    @keyframes topLinePulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    /* ===== Top Bar ===== */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(90deg,
+        rgba(0, 180, 255, 0.04),
+        rgba(124, 58, 237, 0.06),
+        rgba(0, 180, 255, 0.04)
+      );
+      position: relative;
+      z-index: 5;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 240px;
+    }
+
+    /* Glowing logo */
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow:
+        0 0 20px rgba(0, 200, 255, 0.4),
+        0 0 40px rgba(0, 180, 255, 0.2),
+        0 0 60px rgba(124, 58, 237, 0.15);
+      position: relative;
+      animation: logoGlow 2.5s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo::after {
+      content: '⚡';
+      font-size: 16px;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.8));
+    }
+
+    @keyframes logoGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 200, 255, 0.4), 0 0 40px rgba(0, 180, 255, 0.2), 0 0 60px rgba(124, 58, 237, 0.15); }
+      50% { box-shadow: 0 0 30px rgba(0, 200, 255, 0.6), 0 0 60px rgba(0, 180, 255, 0.35), 0 0 80px rgba(124, 58, 237, 0.25); }
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .title strong {
+      font-size: 15px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e0f0ff, #80d0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+    }
+
+    .title span {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.3px;
+    }
+
+    .top-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Status pill */
+    .pill {
+      font-size: 11px;
+      color: var(--accent);
+      border: 1px solid rgba(0, 200, 255, 0.25);
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0, 180, 255, 0.06);
+      font-family: var(--font-mono);
+      letter-spacing: 0.3px;
+      transition: all 0.3s;
+    }
+
+    .pill:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 0 12px rgba(0, 200, 255, 0.15);
+    }
+
+    /* Button */
+    .btn {
+      border: 1px solid rgba(0, 180, 255, 0.3);
+      background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(124, 58, 237, 0.2));
+      color: #c0e8ff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      letter-spacing: 0.4px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .btn:hover:not(:disabled) {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 200, 255, 0.25), 0 0 40px rgba(0, 180, 255, 0.1);
+      background: linear-gradient(135deg, rgba(0, 180, 255, 0.35), rgba(124, 58, 237, 0.3));
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(30%);
+    }
+
+    /* ===== Chat Area ===== */
+    .chat {
+      flex: 1;
+      overflow: auto;
+      padding: 16px 14px 10px;
+      background:
+        linear-gradient(180deg, rgba(0, 180, 255, 0.03), transparent 30%),
+        linear-gradient(0deg, rgba(124, 58, 237, 0.03), transparent 40%);
+      position: relative;
+    }
+
+    /* Scrollbar styling */
+    .chat::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .chat::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat::-webkit-scrollbar-thumb {
+      background: rgba(0, 200, 255, 0.15);
+      border-radius: 999px;
+    }
+
+    .chat::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 200, 255, 0.3);
+    }
+
+    .dayline {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      margin: 6px 0 14px;
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+      position: relative;
+    }
+
+    .dayline::before,
+    .dayline::after {
+      content: '';
+      display: inline-block;
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 200, 255, 0.2));
+      vertical-align: middle;
+      margin: 0 10px;
+    }
+
+    .dayline::after {
+      background: linear-gradient(90deg, rgba(0, 200, 255, 0.2), transparent);
+    }
+
+    /* ===== Messages ===== */
+    .msg {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      align-items: flex-end;
+      animation: msgSlideIn 0.35s ease-out;
+    }
+
+    @keyframes msgSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user { justify-content: flex-end; }
+
+    .msg > div:not(.avatar) {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .msg.user > div:not(.avatar) {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    /* Avatar */
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(20, 30, 50, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex: 0 0 auto;
+      border: 1px solid rgba(0, 180, 255, 0.15);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(8px);
+    }
+
+    .avatar.bot {
+      background: linear-gradient(135deg, rgba(0, 180, 255, 0.2), rgba(124, 58, 237, 0.15));
+      border-color: rgba(0, 200, 255, 0.3);
+      box-shadow: 0 0 15px rgba(0, 180, 255, 0.1);
+    }
+
+    .msg.user .avatar {
+      background: linear-gradient(135deg, rgba(0, 130, 255, 0.3), rgba(0, 180, 216, 0.2));
+      border-color: rgba(0, 180, 255, 0.4);
+      color: #b0d8ff;
+    }
+
+    /* Bubbles */
+    .bubble {
+      max-width: min(720px, 76%);
+      display: inline-block;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      background: var(--bubble-bot);
+      position: relative;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.3s;
+    }
+
+    .bubble:hover {
+      box-shadow: 0 4px 24px rgba(0, 180, 255, 0.06);
+    }
+
+    .msg.user .bubble {
+      background: var(--bubble-user);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 20px rgba(0, 100, 255, 0.25);
+    }
+
+    .msg.user .bubble:hover {
+      box-shadow: 0 4px 28px rgba(0, 120, 255, 0.35);
+    }
+
+    .meta {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
+    }
+
+    .msg.user .meta {
+      color: rgba(200, 220, 255, 0.7);
+    }
+
+    /* ===== Progress Details ===== */
+    details.progress {
+      margin-top: 10px;
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 180, 255, 0.04);
+      backdrop-filter: blur(8px);
+    }
+
+    details.progress[open] {
+      border-color: rgba(0, 200, 255, 0.35);
+      box-shadow: 0 0 20px rgba(0, 180, 255, 0.08);
+    }
+
+    details.progress summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--accent);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.3px;
+      transition: color 0.2s;
+    }
+
+    details.progress summary:hover {
+      color: #60e0ff;
+    }
+
+    .progress ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+
+    .progress li {
+      margin: 5px 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      animation: fadeInLine 0.3s ease-out;
+    }
+
+    @keyframes fadeInLine {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ===== Images in Answer ===== */
+    .answer-images {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .answer-images img {
+      display: block;
+      max-width: min(100%, 600px);
+      max-height: 600px;
+      width: auto;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 180, 255, 0.08);
+      background: #0a0e17;
+    }
+
+    .answer-images a {
+      font-size: 11px;
+      color: var(--muted);
+      text-decoration: none;
+      word-break: break-all;
+      font-family: var(--font-mono);
+      transition: color 0.2s;
+    }
+
+    .answer-images a:hover {
+      color: var(--accent);
+    }
+
+    /* ===== Typing Indicator ===== */
+    .typing {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: bounce 1.2s infinite ease-in-out;
+      box-shadow: 0 0 8px rgba(0, 200, 255, 0.5);
+    }
+
+    .dot:nth-child(2) { animation-delay: .15s; }
+    .dot:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ===== Composer ===== */
+    .composer {
+      border-top: 1px solid var(--border);
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: rgba(10, 14, 23, 0.95);
+      backdrop-filter: blur(16px);
+      position: relative;
+    }
+
+    /* Subtle top glow on composer */
+    .composer::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent, rgba(0, 200, 255, 0.15), transparent
+      );
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+      min-height: 46px;
+      max-height: 140px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      outline: none;
+      font-size: 14px;
+      line-height: 1.5;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    textarea:focus {
+      border-color: rgba(0, 200, 255, 0.5);
+      box-shadow:
+        0 0 0 3px rgba(0, 200, 255, 0.08),
+        0 0 25px rgba(0, 180, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Send button */
+    .send {
+      width: 90px;
+      height: 46px;
+      border: 1px solid rgba(0, 200, 255, 0.3);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #0055cc, #0088cc);
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .send::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: -1;
+    }
+
+    .send:hover:not(:disabled) {
+      border-color: var(--accent);
+      box-shadow: 0 0 25px rgba(0, 200, 255, 0.35), 0 0 50px rgba(0, 150, 255, 0.15);
+      transform: translateY(-1px);
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+
+    .send:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      filter: grayscale(40%);
+    }
+
+    /* ===== Hint Bar ===== */
+    .hint {
+      padding: 0 14px 12px;
+      color: var(--muted);
+      font-size: 11px;
+      background: rgba(10, 14, 23, 0.95);
+      font-family: var(--font-mono);
+      letter-spacing: 0.3px;
+    }
+
+    .kbd {
+      font-family: var(--font-mono);
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(0, 180, 255, 0.06);
+      color: var(--text-secondary);
+      font-size: 10px;
+    }
+
+    /* ===== Checkbox Styling ===== */
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+    }
+
+    label[style] {
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    label[style]:hover {
+      opacity: 1;
+    }
+
+    /* ===== Glitch effect on brand name (subtle) ===== */
+    @keyframes subtleFlicker {
+      0%, 100% { opacity: 1; }
+      95% { opacity: 0.99; }
+      96% { opacity: 0.95; }
+      97% { opacity: 1; }
+    }
+
+    .title strong {
+      animation: subtleFlicker 6s infinite;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      body { padding: 8px; }
+      .app { border-radius: 12px; height: 98vh; }
+      .topbar { padding: 10px 12px; gap: 8px; }
+      .brand { min-width: auto; }
+      .logo { width: 30px; height: 30px; border-radius: 8px; }
+      .title strong { font-size: 13px; }
+      .bubble { max-width: 88%; font-size: 13px; }
+      .composer { padding: 10px; }
+      .send { width: 70px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="title">
+          <strong>逸云智库知识库</strong>
+          <span id="subTitle">在线 · 可查询知识库与联网信息</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;color:var(--muted);margin-right:10px;">
+          <input type="checkbox" id="streamToggle" checked> 流式输出
+        </label>
+        <span class="pill" id="apiPill">API: 未连接</span>
+        <button class="btn" id="btnClear">清空对话</button>
+      </div>
+    </div>
+
+    <div class="chat" id="chat">
+      <div class="dayline">今天</div>
+      <div class="msg bot">
+        <div class="avatar bot">智</div>
+        <div>
+          <div class="bubble">你好，我是掌柜智库知识库客服。你可以直接提问，我会在"阶段进度"里展示处理过程。</div>
+          <div class="meta">提示：可以问"如何使用万用表测量电压？"</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <textarea id="input" placeholder="请输入问题（Enter 发送，Shift+Enter 换行）"></textarea>
+      <button class="send" id="send">发送</button>
+    </div>
+    <div class="hint">快捷键：<span class="kbd">Enter</span> 发送，<span class="kbd">Shift</span>+<span class="kbd">Enter</span> 换行</div>
+  </div>
+
+  <script>
+    // 默认同源；如你把页面单独打开（file://），可改成 http://127.0.0.1:8001
+    const API_BASE = `${location.protocol}//${location.host}`.includes('http') ? `${location.protocol}//${location.host}` : 'http://127.0.0.1:8001';
+    const chatEl = document.getElementById('chat');
+    const inputEl = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const apiPill = document.getElementById('apiPill');
+    const btnClear = document.getElementById('btnClear');
+    const streamToggle = document.getElementById('streamToggle');
+
+    // Session ID Logic
+    let sessionId = localStorage.getItem('kb_session_id');
+    if (!sessionId) {
+      sessionId = 'sess-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('kb_session_id', sessionId);
+    }
+
+    function scrollToBottom(){
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+    function nowTime(){
+      const d = new Date();
+      return d.toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+    }
+    function formatTime(ts){
+      if(!ts) return nowTime();
+      const d = new Date(Number(ts) * 1000);
+      if(Number.isNaN(d.getTime())) return nowTime();
+      return d.toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+    }
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+
+    function isImageUrl(url){
+      try {
+        const u = new URL(url);
+        return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(u.pathname);
+      } catch (e) {
+        return /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(url || '');
+      }
+    }
+
+    function normalizeUrl(rawUrl){
+      const s = String(rawUrl || '').trim();
+      if(!s) return '';
+      // 先替换空格，再对中文等非 ASCII 字符做百分号编码
+      let encoded = s.replace(/\s/g, '%20');
+      try {
+        // 仅编码路径部分（保留协议和域名）
+        const u = new URL(encoded);
+        u.pathname = u.pathname.split('/').map(seg => encodeURIComponent(decodeURIComponent(seg))).join('/');
+        encoded = u.toString();
+      } catch(_) {
+        // 非标准 URL，直接整体 encodeURI
+        encoded = encodeURI(encoded);
+      }
+      return encoded;
+    }
+
+    function dedupeKeepOrder(arr){
+      const seen = new Set();
+      const out = [];
+      for(const x of (Array.isArray(arr) ? arr : [])){
+        const v = String(x || '');
+        if(!v) continue;
+        if(seen.has(v)) continue;
+        seen.add(v);
+        out.push(v);
+      }
+      return out;
+    }
+
+    function extractUrlsLoose(text){
+      const s = String(text || '');
+      const regex = /(https?:\/\/[^\s]+)/g;
+      const matches = s.match(regex) || [];
+      const urls = [];
+
+      const trimTailPunct = (u) => String(u || '').replace(/[)\]}'">，。,;；\]】）＞]+$/g, '');
+      const trimHeadPunct = (u) => String(u || '').replace(/^[<([{'"]+|^[＜（【\[]+/g, '');
+
+      for(const m of matches){
+        let u = trimHeadPunct(trimTailPunct(m));
+        if(u) urls.push(u);
+      }
+      return dedupeKeepOrder(urls);
+    }
+
+    function parseImagesFromTextLoosely(text){
+      const urls = extractUrlsLoose(text).filter(isImageUrl);
+      return dedupeKeepOrder(urls);
+    }
+
+    function findLastImageMarkerIndex(raw){
+      const s = String(raw || '');
+      const re = /【\s*图片\s*】|\[\s*图片\s*\]/g;
+      let m;
+      let lastIdx = -1;
+      let lastLen = 0;
+      while((m = re.exec(s)) !== null){
+        lastIdx = m.index;
+        lastLen = m[0].length;
+      }
+      return { idx: lastIdx, len: lastLen };
+    }
+
+    function parseAnswerAndImages(text){
+      const raw = String(text || '');
+      const { idx, len } = findLastImageMarkerIndex(raw);
+      if(idx === -1) return { text: raw, images: [] };
+
+      const before = raw.slice(0, idx).trimEnd();
+      const after = raw.slice(idx + len).trim();
+      const urls = [];
+
+      const lines = after.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      for(const line of lines){
+        if(line.startsWith('http://') || line.startsWith('https://')){
+          urls.push(line);
+        }else{
+          const matches = extractUrlsLoose(line);
+          for(const u of matches){
+            urls.push(u);
+          }
+        }
+      }
+
+      const seen = new Set();
+      const images = [];
+      for(const u of urls){
+        const normalized = normalizeUrl(u);
+        if(!isImageUrl(normalized)) continue;
+        if(seen.has(normalized)) continue;
+        seen.add(normalized);
+        images.push(normalized);
+      }
+      return { text: before, images };
+    }
+
+    function shouldShowImagesByAnswer(answerText){
+      const t = String(answerText || '');
+      const keywords = [
+        '如图', '如下图', '见图', '见下图', '下图', '上图',
+        '图片', '示意图', '结构图', '外观', '接线图', '电路图', '原理图', '安装图', '尺寸图', '截图'
+      ];
+      return keywords.some(k => t.includes(k));
+    }
+
+    function renderAnswerWithImages(containerEl, answerText, candidateImageUrls){
+      console.log('[RENDER] 收到原始 candidateImageUrls:', candidateImageUrls);
+      const { text, images: imagesFromBlock } = parseAnswerAndImages(answerText);
+      const rawCandidates = Array.isArray(candidateImageUrls) ? candidateImageUrls : [];
+      const candidates = rawCandidates.map(normalizeUrl).filter(isImageUrl);
+      console.log('[RENDER] 过滤前:', rawCandidates.length, '→ 过滤后:', candidates.length);
+      if (rawCandidates.length > 0) {
+        rawCandidates.forEach((u, i) => {
+          const n = normalizeUrl(u);
+          console.log(`[RENDER] URL[${i}]: 原始="${u}" → 规范化="${n}" → isImage=${isImageUrl(n)}`);
+        });
+      }
+      const hasBlockImages = imagesFromBlock && imagesFromBlock.length > 0;
+      console.log('[RENDER] imagesFromBlock:', imagesFromBlock?.length || 0, 'looseImages 稍后计算');
+
+      const looseImages = extractUrlsLoose(answerText).map(normalizeUrl).filter(isImageUrl);
+
+      const allImages = new Set([
+          ...(hasBlockImages ? imagesFromBlock : []),
+          ...candidates,
+          ...looseImages
+      ]);
+      const images = Array.from(allImages);
+      console.log('[RENDER] 最终待渲染图片:', images.length, 'urls:', images);
+
+      containerEl.textContent = '';
+
+      if((text || '').trim().length > 0){
+        const textEl = document.createElement('div');
+        textEl.className = 'answer-text';
+        textEl.textContent = text;
+        containerEl.appendChild(textEl);
+      }else{
+        const textEl = document.createElement('div');
+        textEl.className = 'answer-text';
+        textEl.textContent = '（已完成，但未返回答案）';
+        containerEl.appendChild(textEl);
+      }
+
+      if(images && images.length > 0){
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'answer-images';
+        for(const url of images){
+          const safeUrl = normalizeUrl(url);
+          const img = document.createElement('img');
+          img.loading = 'lazy';
+          img.src = safeUrl;
+          img.alt = '参考图片';
+          img.referrerPolicy = 'no-referrer';
+          img.addEventListener('error', (ev) => {
+            console.warn('[IMAGE] 加载失败:', safeUrl);
+            img.style.display = 'none';
+            // 显示图片链接作为兜底，确保用户至少能看到 URL
+            const linkEl = img.nextElementSibling;
+            if (linkEl && linkEl.tagName === 'A') {
+              linkEl.style.color = '#ff6b6b';
+              linkEl.textContent = '[加载失败] ' + url;
+            }
+          });
+          imgWrap.appendChild(img);
+
+          const link = document.createElement('a');
+          link.href = safeUrl;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = url;
+          imgWrap.appendChild(link);
+        }
+        containerEl.appendChild(imgWrap);
+      }
+    }
+
+    function addUserMsg(text){
+      const html = `
+        <div class="msg user">
+          <div>
+            <div class="bubble">${escapeHtml(text)}</div>
+            <div class="meta">${nowTime()}</div>
+          </div>
+          <div class="avatar">我</div>
+        </div>
+      `;
+      chatEl.insertAdjacentHTML('beforeend', html);
+      scrollToBottom();
+    }
+
+    function addUserMsgWithTime(text, ts){
+      const html = `
+        <div class="msg user">
+          <div>
+            <div class="bubble">${escapeHtml(text)}</div>
+            <div class="meta">${formatTime(ts)}</div>
+          </div>
+          <div class="avatar">我</div>
+        </div>
+      `;
+      chatEl.insertAdjacentHTML('beforeend', html);
+      scrollToBottom();
+    }
+
+    function addBotMsgWithTime(text, ts, imageUrls){
+      const id = 'bot-his-' + Math.random().toString(36).slice(2);
+      const html = `
+        <div class="msg bot" id="${id}">
+          <div class="avatar bot">智</div>
+          <div>
+            <div class="bubble"><div class="answer"></div></div>
+            <div class="meta">${formatTime(ts)}</div>
+          </div>
+        </div>
+      `;
+      chatEl.insertAdjacentHTML('beforeend', html);
+      const el = document.getElementById(id);
+      if(el){
+        const answerEl = el.querySelector('.answer');
+        renderAnswerWithImages(answerEl, text || '', imageUrls || []);
+      }
+      scrollToBottom();
+    }
+
+    function addBotMsgSkeleton(){
+      const id = 'bot-' + Math.random().toString(36).slice(2);
+      const html = `
+        <div class="msg bot" id="${id}">
+          <div class="avatar bot">智</div>
+          <div style="min-width: 180px;">
+            <div class="bubble">
+              <span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+              <details class="progress" open>
+                <summary>阶段进度（等待中）</summary>
+                <ul></ul>
+              </details>
+            </div>
+            <div class="meta">${nowTime()}</div>
+          </div>
+        </div>
+      `;
+      chatEl.insertAdjacentHTML('beforeend', html);
+      scrollToBottom();
+      return document.getElementById(id);
+    }
+
+    function renderProgress(botMsgEl, doneList, runningList, status){
+      const details = botMsgEl.querySelector('details.progress');
+      const summary = details.querySelector('summary');
+      const ul = details.querySelector('ul');
+      const done = Array.isArray(doneList) ? doneList : [];
+      const running = Array.isArray(runningList) ? runningList : [];
+      const totalDone = done.length;
+      const totalRun = running.length;
+
+      const statusMap = {
+        'processing': '处理中',
+        'completed': '已完成',
+        'failed': '失败',
+        'pending': '等待中',
+      };
+      const displayStatus = statusMap[status] || status || 'unknown';
+
+      summary.textContent = `阶段进度（已完成${totalDone}，进行中${totalRun}，状态：${displayStatus}）`;
+
+      const lines = [
+        ...done.map(x => `✅ ${x}`),
+        ...running.map(x => `⏳ ${x}`)
+      ];
+      ul.innerHTML = '';
+      if(lines.length === 0){
+        ul.insertAdjacentHTML('beforeend', '<li>暂无进度</li>');
+      }else{
+        for(const line of lines){
+          ul.insertAdjacentHTML('beforeend', `<li>${escapeHtml(line)}</li>`);
+        }
+      }
+    }
+
+    function finalizeBotAnswer(botMsgEl, answer, error, imageUrls){
+      const bubble = botMsgEl.querySelector('.bubble');
+      const progress = botMsgEl.querySelector('details.progress');
+      const err = (error || '').trim();
+
+      if(err){
+        const progressEl = progress ? progress : null;
+        if(progressEl) {
+            progressEl.remove();
+            progressEl.removeAttribute('open');
+        }
+        bubble.textContent = '';
+        const errEl = document.createElement('div');
+        errEl.className = 'answer';
+        errEl.textContent = `抱歉，本次处理失败：\n${err}`;
+        bubble.appendChild(errEl);
+        if(progressEl) bubble.appendChild(progressEl);
+        return;
+      }
+
+      const progressEl = progress ? progress : null;
+      if(progressEl) {
+        progressEl.remove();
+        progressEl.removeAttribute('open');
+      }
+      bubble.textContent = '';
+      const answerEl = document.createElement('div');
+      answerEl.className = 'answer';
+      bubble.appendChild(answerEl);
+      renderAnswerWithImages(answerEl, answer || '', imageUrls || []);
+      if(progressEl) bubble.appendChild(progressEl);
+    }
+
+    async function apiHealth(){
+      try{
+        const res = await fetch(`${API_BASE}/health`);
+        if(!res.ok) throw new Error('health not ok');
+        apiPill.textContent = `API: 已连接`;
+        apiPill.style.color = '#00e676';
+        apiPill.style.borderColor = 'rgba(0, 230, 118, 0.3)';
+      }catch(e){
+        apiPill.textContent = `API: 未连接`;
+        apiPill.style.color = '';
+        apiPill.style.borderColor = '';
+      }
+    }
+
+    async function loadHistory(){
+      try{
+        const res = await fetch(`${API_BASE}/history/${sessionId}`);
+        if(!res.ok) return;
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        if(items.length === 0) return;
+        const nodes = Array.from(chatEl.querySelectorAll('.msg'));
+        for(let i=1;i<nodes.length;i++) nodes[i].remove();
+        for(const item of items){
+          if(item.role === 'user'){
+            addUserMsgWithTime(item.text || '', item.ts);
+          }else{
+            addBotMsgWithTime(item.text || '', item.ts, item.image_urls || []);
+          }
+        }
+        scrollToBottom();
+      }catch(_){}
+    }
+
+    async function submitQuery(text){
+      const isStream = streamToggle.checked;
+      const res = await fetch(`${API_BASE}/query`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          query: text,
+          session_id: sessionId,
+          is_stream: isStream
+        })
+      });
+      if(!res.ok){
+        const msg = await res.text();
+        throw new Error(msg || '请求失败');
+      }
+      return await res.json();
+    }
+
+    async function poll(taskId, botMsgEl){
+      const typing = botMsgEl.querySelector('.typing');
+      const interval = setInterval(async () => {
+        try{
+          const res = await fetch(`${API_BASE}/status/${taskId}`);
+          const data = await res.json();
+          renderProgress(botMsgEl, data.done_list, data.running_list, data.status);
+
+          if(data.status === 'completed'){
+            if(typing) typing.remove();
+            finalizeBotAnswer(botMsgEl, data.answer, data.error, data.image_urls || []);
+            clearInterval(interval);
+            sendBtn.disabled = false;
+          }else if(data.status === 'failed'){
+            if(typing) typing.remove();
+            finalizeBotAnswer(botMsgEl, data.answer, data.error || 'failed', data.image_urls || []);
+            clearInterval(interval);
+            sendBtn.disabled = false;
+          }
+        }catch(e){
+          // 轮询错误不立刻终止
+        }
+      }, 1200);
+    }
+
+    async function onSend(){
+      console.log('[perf] A onSend start', performance.now());
+      const text = (inputEl.value || '').trim();
+      if(!text) return;
+      inputEl.value = '';
+      addUserMsg(text);
+      const botMsgEl = addBotMsgSkeleton();
+      sendBtn.disabled = true;
+
+      try{
+        const isStream = streamToggle.checked;
+        console.log('[perf] B submitQuery start', performance.now(), { isStream });
+        const data = await submitQuery(text);
+        console.log('[perf] B submitQuery end', performance.now(), data);
+
+        renderProgress(botMsgEl, [], [], 'pending');
+
+        if (!isStream) {
+          renderProgress(botMsgEl, data.done_list || [], [], 'completed');
+          finalizeBotAnswer(botMsgEl, data.answer, data.error, data.image_urls || []);
+          sendBtn.disabled = false;
+          return;
+        }
+
+        // 流式：SSE
+        const { session_id } = data;
+
+        const bubble = botMsgEl.querySelector('.bubble');
+        let answerEl = bubble.querySelector('.answer');
+        if(!answerEl){
+          answerEl = document.createElement('div');
+          answerEl.className = 'answer';
+          bubble.insertBefore(answerEl, bubble.firstChild);
+        }
+
+        const es = new EventSource(`${API_BASE}/stream/${session_id}`);
+        console.log('[perf] C EventSource created', performance.now(), { session_id, url: `${API_BASE}/stream/${session_id}` });
+        let rawAnswerText = '';
+
+        es.onopen = () => console.log('[SSE] 连接已建立');
+        es.onerror = (e) => console.error('[SSE] 连接错误', e);
+        // 兜底：监听所有未命名事件
+        es.onmessage = (e) => console.log('[SSE] 收到通用消息:', e.data?.substring(0, 200));
+
+        es.addEventListener('progress', (e) => {
+          console.log('[SSE] progress 事件收到');
+          try{
+            const d = JSON.parse(e.data || '{}');
+            renderProgress(botMsgEl, d.done_list, d.running_list, d.status);
+            if(d && d.status === 'completed'){
+              const typing = botMsgEl.querySelector('.typing');
+              if(typing) typing.remove();
+              sendBtn.disabled = false;
+            }
+          }catch(_){}
+        });
+
+        es.addEventListener('delta', (e) => {
+          console.log('[SSE] delta 事件收到, 长度:', (e.data || '').length);
+          try{
+            const d = JSON.parse(e.data || '{}');
+            const delta = d.delta || '';
+            if(delta){
+              rawAnswerText += delta;
+              renderAnswerWithImages(answerEl, rawAnswerText, []);
+              scrollToBottom();
+            }
+          }catch(_){}
+        });
+
+        es.addEventListener('final', (e) => {
+          const typing = botMsgEl.querySelector('.typing');
+          if(typing) typing.remove();
+          const progress = botMsgEl.querySelector('details.progress');
+          if(progress) progress.removeAttribute('open');
+
+          try{
+            const d = JSON.parse(e.data || '{}');
+            const finalText = (d && typeof d.answer === 'string' && d.answer.trim().length > 0) ? d.answer : (rawAnswerText || answerEl.textContent || '');
+            console.log('[FINAL] answer length:', finalText?.length, 'image_urls count:', (d.image_urls || []).length, 'urls:', d.image_urls);
+            renderAnswerWithImages(answerEl, finalText, d.image_urls || []);
+          }catch(err){
+            console.error('[FINAL] 处理失败:', err);
+          }
+          es.close();
+          sendBtn.disabled = false;
+        });
+
+        es.addEventListener('final_answer', (e) => {
+          const typing = botMsgEl.querySelector('.typing');
+          if(typing) typing.remove();
+          const progress = botMsgEl.querySelector('details.progress');
+          if(progress) progress.removeAttribute('open');
+
+          try{
+            const d = JSON.parse(e.data || '{}');
+            const finalText = (d && typeof d.answer === 'string' && d.answer.trim().length > 0) ? d.answer : (rawAnswerText || answerEl.textContent || '');
+            console.log('[FINAL_ANSWER] answer length:', finalText?.length, 'image_urls count:', (d.image_urls || []).length);
+            renderAnswerWithImages(answerEl, finalText, d.image_urls || []);
+          }catch(err){
+            console.error('[FINAL_ANSWER] 处理失败:', err);
+          }
+          es.close();
+          sendBtn.disabled = false;
+        });
+
+        es.addEventListener('error', (e) => {
+          const typing = botMsgEl.querySelector('.typing');
+          if(typing) typing.remove();
+          const progress = botMsgEl.querySelector('details.progress');
+          if(progress) progress.removeAttribute('open');
+
+          try{
+            const msg = e && e.data ? (JSON.parse(e.data).error || 'SSE 连接中断/失败') : 'SSE 连接中断/失败';
+            rawAnswerText += `\n\n（错误：${msg}）`;
+            renderAnswerWithImages(answerEl, rawAnswerText, []);
+          }catch(_){
+            rawAnswerText += `\n\n（错误：SSE 连接中断/失败）`;
+            renderAnswerWithImages(answerEl, rawAnswerText, []);
+          }
+          es.close();
+          sendBtn.disabled = false;
+        });
+      }catch(e){
+        const bubble = botMsgEl.querySelector('.bubble');
+        const progress = botMsgEl.querySelector('details.progress');
+        const typing = botMsgEl.querySelector('.typing');
+        if(typing) typing.remove();
+        bubble.innerHTML = `请求失败：${escapeHtml(e.message || e)}\n\n` + progress.outerHTML;
+        sendBtn.disabled = false;
+      }
+    }
+
+    sendBtn.addEventListener('click', onSend);
+    inputEl.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        onSend();
+      }
+    });
+    btnClear.addEventListener('click', async () => {
+      if(!confirm('确定要清空当前会话的历史记录吗？这将无法恢复。')) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/history/${sessionId}`, { method: 'DELETE' });
+        if(!res.ok) {
+           console.error("Failed to clear history backend, status:", res.status);
+           alert('服务端清空失败，仅清空本地显示');
+        }
+      } catch(e) {
+        console.error("Failed to clear history backend", e);
+        alert('服务端清空失败，仅清空本地显示');
+      }
+
+      const nodes = Array.from(chatEl.querySelectorAll('.msg'));
+      for(let i=1;i<nodes.length;i++) nodes[i].remove();
+      scrollToBottom();
+    });
+
+    apiHealth();
+    setInterval(apiHealth, 5000);
+    loadHistory();
+    setTimeout(() => inputEl.focus(), 200);
+  </script>
+</body>
+</html>

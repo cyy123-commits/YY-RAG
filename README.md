@@ -6,7 +6,6 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135+-009688.svg)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.1+-orange.svg)](https://langchain-ai.github.io/langgraph/)
 [![Milvus](https://img.shields.io/badge/Milvus-2.6+-00b894.svg)](https://milvus.io/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
